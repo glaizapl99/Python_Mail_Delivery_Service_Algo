@@ -1,6 +1,3 @@
-from datetime import datetime
-
-
 class Package:
     def __init__(self, package_id, address, city, state, zipcode, deadline, weight, status):
         self.package_id = package_id

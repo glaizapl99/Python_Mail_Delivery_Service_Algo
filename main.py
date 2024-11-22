@@ -81,33 +81,44 @@ package_hash_map = CreateHashMap()
 load_packages("CSV Files/Package_File.csv", package_hash_map)
 
 
-#nearest neighbor method
+#helper function to find the nearest package
+def find_nearest_package(truck, undelivered_packages):
+    nearest_package = None
+    shortest_distance = float('inf')  #start with a very large distance
+
+    for package in undelivered_packages:
+        distance = distances_between(get_address(truck.address), get_address(package.address))
+        if distance < shortest_distance:
+            shortest_distance = distance
+            nearest_package = package
+
+    return nearest_package, shortest_distance
+
+
+#deliver packages method
 def deliver_packages(truck):
-    #place all packages into undelivered array
-    undelivered_packages = []
-    for package_id in truck.packages:
-        package = package_hash_map.lookup(package_id)
-        undelivered_packages.append(package)
-    #clear the list of packages on a given truck so packages can be placed back onto the truck in nearest neighbor order
+    #create a list of undelivered packages
+    undelivered_packages = [package_hash_map.lookup(package_id) for package_id in truck.packages]
+
+    #clear the truck's package list to reorder them
     truck.packages.clear()
 
-#cycle through list of undelivered packages until the end of the list
-#puts nearest package into truck.packages list
-    while len(undelivered_packages) > 0:
-        next_address = 2000
-        next_package = None
-        for package in undelivered_packages:
-            distance = distances_between(get_address(truck.address), get_address(package.address))
-            if distance <= next_address:
-                next_address = distance
-                next_package = package
-            #check if the package is already in the truck's package list to avoid duplicates
-        if next_package and next_package not in truck.packages:
-            truck.packages.append(next_package)
+    #while there are still packages to deliver
+    while undelivered_packages:
+        #find the nearest package and its distance
+        next_package, next_address = find_nearest_package(truck, undelivered_packages)
+
+        if next_package:
+            #load the package onto the truck
+            truck.packages.append(next_package.package_id)
+            #remove it from the undelivered list
             undelivered_packages.remove(next_package)
-            #update truck mileage and time
+            #update truck mileage, address, and time
             truck.mileage += next_address
-            truck.time += timedelta(hours=next_address / 18)
+            truck.address = next_package.address
+            truck.time += timedelta(hours=next_address / 18)  # Assuming speed is 18 mph
+
+            #update package delivery details
             next_package.delivery_time = truck.time
             next_package.departure_time = truck.depart_time
 
