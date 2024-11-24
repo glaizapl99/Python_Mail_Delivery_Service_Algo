@@ -96,7 +96,7 @@ def find_nearest_package(truck, undelivered_packages):
 
 
 #deliver packages method
-def deliver_packages(truck):
+def deliver_packages(truck, truck_number):
     #create a list of undelivered packages
     undelivered_packages = [package_hash_map.lookup(package_id) for package_id in truck.packages]
 
@@ -109,6 +109,11 @@ def deliver_packages(truck):
         next_package, next_address = find_nearest_package(truck, undelivered_packages)
 
         if next_package:
+            #check if the package is Package 9 and change its address (after 10:20 AM)
+            if next_package.package_id == 9 and truck.time >= timedelta(hours=10, minutes=20):
+                next_package.address = "410 S State St"  #new address
+                next_package.zipcode = "84111" #new zip code
+
             #load the package onto the truck
             truck.packages.append(next_package.package_id)
             #remove it from the undelivered list
@@ -121,14 +126,15 @@ def deliver_packages(truck):
             #update package delivery details
             next_package.delivery_time = truck.time
             next_package.departure_time = truck.depart_time
+            next_package.truck_number = truck_number #set truck number
 
 
 #load truck 1 and 2
-deliver_packages(truck_1)
-deliver_packages(truck_2)
+deliver_packages(truck_1, 1)
+deliver_packages(truck_2, 2)
 #wait till other trucks leave and are finished with loads then truck 3 can go
 truck_3.depart_time = min(truck_1.time, truck_2.time)
-deliver_packages(truck_3)
+deliver_packages(truck_3, 3)
 
 def main():
     #ui
@@ -162,6 +168,7 @@ def main():
                     package = package_hash_map.lookup(int(input_2))
                     package.update_status(current_time)
                     print(str(package))
+                    print(f"Truck Number: {package.truck_number}")
                 except ValueError:
                     print("Invalid entry. The program will now quit. Goodbye!")
                     exit()
@@ -173,6 +180,7 @@ def main():
                         package = package_hash_map.lookup(package_id)
                         package.update_status(current_time)
                         print(str(package))
+                        print(f"Truck Number: {package.truck_number}")
                 except ValueError:
                     print("Invalid entry. The program will now quit. Goodbye!")
                     exit()
