@@ -68,11 +68,11 @@ truck_1 = Truck(16, 18, None, [1, 13, 14, 15, 16, 20, 29, 30, 31, 34, 37, 40], 0
 
 #truck 2
 truck_2 = Truck(16, 18, None, [3, 6, 12, 17, 18, 19, 21, 22, 23, 24, 26, 27, 35, 36, 38, 39], 0.0,
-                     "4001 South 700 East", timedelta(hours = 10, minutes = 20))
+                     "4001 South 700 East", timedelta(hours = 9, minutes = 5))
 
 #truck 3
 truck_3 = Truck(16, 18, None, [2, 4, 5, 6, 7, 8, 9, 10, 11, 25, 28, 32, 33], 0.0, "4001 South 700 East",
-                     timedelta(hours = 9, minutes = 5))
+                     timedelta(hours = 10, minutes = 20))
 
 #create hash table
 package_hash_map = CreateHashMap()
@@ -109,11 +109,6 @@ def deliver_packages(truck, truck_number):
         next_package, next_address = find_nearest_package(truck, undelivered_packages)
 
         if next_package:
-            #check if the package is Package 9 and change its address (after 10:20 AM)
-            if next_package.package_id == 9 and truck.time >= timedelta(hours=10, minutes=20):
-                next_package.address = "410 S State St"  #new address
-                next_package.zipcode = "84111" #new zip code
-
             #load the package onto the truck
             truck.packages.append(next_package.package_id)
             #remove it from the undelivered list
@@ -121,7 +116,7 @@ def deliver_packages(truck, truck_number):
             #update truck mileage, address, and time
             truck.mileage += next_address
             truck.address = next_package.address
-            truck.time += timedelta(hours=next_address / 18)  # Assuming speed is 18 mph
+            truck.time += timedelta(hours=next_address / 18)
 
             #update package delivery details
             next_package.delivery_time = truck.time
@@ -156,6 +151,18 @@ def main():
                                "\n")
             (h, m, s) = user_begin.split(":")
             current_time = timedelta(hours = int(h), minutes = int(m), seconds = int(s))
+            
+            #update address for package 9 based on time
+            package_9 = package_hash_map.lookup(9)
+            update_time = timedelta(hours=10, minutes=20)  #time for address correction
+
+            if current_time >= update_time:
+                package_9.address = "410 S State St"
+                package_9.zipcode = "84111"
+            else:
+                package_9.address = "300 State St"
+                package_9.zipcode = "84103"
+
             #the user will be prompted to choose between looking at a specific package status or all package statuses
             input_2 = input("To see the status of a specific package, please type the word 'specific'."
                             "\nTo see the status of all packages, please type 'all'."
